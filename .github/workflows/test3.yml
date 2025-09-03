@@ -1,0 +1,22 @@
+name: Secure Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for deployment'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run deployment script
+        run: |
+          echo "Starting deployment to production environment..."
+          # Your deployment script here
+          echo "Deployment completed."
