@@ -1,0 +1,38 @@
+name: Restricted Manual Run Secure
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Why are you running this workflow?'
+        required: false
+        default: 'Testing permissions'
+
+jobs:
+  check-user:
+    runs-on: ubuntu-latest
+    env:
+      AUTHORIZED_USERS: ${{ secrets.AUTHORIZED_USERS }}
+    if: contains(github.actor, 'github_actions') == false
+    steps:
+      - name: Check if user is authorized
+        id: check
+        run: |
+          AUTHORIZED_USERS_ARRAY=(${{ env.AUTHORIZED_USERS }})
+          if [[ " ${AUTHORIZED_USERS_ARRAY[@]} " =~ " ${{ github.actor }} " ]]; then
+            echo "::set-output name=auth::true"
+          else
+            echo "::set-output name=auth::false"
+          fi
+      
+      - name: Greet Authorized User
+        if: steps.check.outputs.auth == 'true'
+        run: |
+          echo "Hello ${{ github.actor }}, you are authorized to run this workflow."
+          echo "Reason for running: ${{ github.event.inputs.reason }}"
+
+      - name: Deny Unauthorized User
+        if: steps.check.outputs.auth == 'false'
+        run: |
+          echo "Sorry ${{ github.actor }}, you are not authorized to run this workflow."
+          exit 1
